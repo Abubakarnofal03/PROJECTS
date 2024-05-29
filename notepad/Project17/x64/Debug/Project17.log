@@ -1,0 +1,5 @@
+﻿  FileName.cpp
+C:\Users\ABUBAKAR NOFAL\source\repos\Project17\Project17\FileName.cpp(409,20): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\ABUBAKAR NOFAL\source\repos\Project17\Project17\FileName.cpp(415,24): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\ABUBAKAR NOFAL\source\repos\Project17\Project17\FileName.cpp(534,6): warning C4101: 'choice': unreferenced local variable
+  Project17.vcxproj -> C:\Users\ABUBAKAR NOFAL\source\repos\Project17\x64\Debug\Project17.exe
