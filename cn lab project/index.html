@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Client</title>
+    <style>
+       /* Styling for the body */
+       body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        background-color: black; /* Change background color to black */
+        border: 5px solid #17d713; /* Add a green border */
+       }
+       /* Styling for the heading */
+       h1 {
+        background-color: #36c313; /* Green background */
+        color: white;
+        padding: 20px;
+        margin: 0;
+        text-align: center;
+    }
+    /* Styling for the messages container */
+    #messages-container {
+        flex: 1;
+        overflow-y: auto;
+        margin: 0;
+        padding: 0 10px; /* Add padding to keep messages away from edges */
+    }
+        /* Styling for the messages list */
+        #messages {
+            border-color: #17d713; /* Green border */
+            list-style-type: none;
+            padding: 0;
+            flex: 1;
+            overflow-y: auto;
+            margin: 0;
+            padding: 10px;
+            
+        }
+
+        /* Styling for each message item */
+        #messages li {
+        padding: 10px;
+        background-color: #fff; /* White background */
+        border-radius: 5px;
+        margin-bottom: 10px;
+        border: 2px solid green; /* Change border color to green */
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        word-wrap: break-word;
+    }
+        /* Styling for input containers */
+        #inputContainer, #fileInputContainer, #roomContainer, #statusContainer {
+            display: flex;
+            align-items: center;
+            margin: 10px;
+        }
+
+        /* Styling for input fields */
+        #inputContainer input, #fileInputContainer input, #roomContainer input, #statusContainer input {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-right: 10px;
+            flex: 1;
+        }
+
+        /* Styling for buttons */
+        #inputContainer button, #fileInputContainer button, #roomContainer button, #statusContainer button {
+            padding: 10px 20px;
+            text-transform: uppercase;
+            border-radius: 8px;
+            font-size: 17px;
+            font-weight: 500;
+            color: #ffffff80;
+            text-shadow: none;
+            background: transparent;
+            cursor: pointer;
+            box-shadow: transparent;
+            border: 1px solid #ffffff80;
+            transition: 0.5s ease;
+            user-select: none;
+        }
+
+        /* Hover effect for buttons */
+        #inputContainer button:hover, #fileInputContainer button:hover, #roomContainer button:hover, #statusContainer button:hover {
+            color: #ffffff;
+            background: #17d713;
+            border: 1px solid #17d713;
+            text-shadow: 0 0 5px #ffffff, 0 0 10px #ffffff, 0 0 20px #ffffff;
+            box-shadow: 0 0 5px #17d713, 0 0 20px #17d713, 0 0 50px #17d713,
+                0 0 100px #17d713;
+        }
+
+        /* Margin for buttons */
+        #sendButton, #sendFileButton, #sendToRecipientButton, #createRoomButton, #joinRoomButton, #leaveRoomButton, #updateStatusButton {
+            margin-left: 10px;
+        }
+
+        /* Styling for server message */
+        #serverMessage {
+            padding: 10px;
+            background-color: #36c313; /* Green background */
+            color: white;
+            border-radius: 5px;
+            margin: 10px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Heading -->
+    <h1>Easy Messaging</h1> 
+    <!-- Container for messages -->
+    <div id="messages-container"> 
+        <!-- Messages list -->
+        <ul id="messages"></ul> 
+    </div>
+    <!-- Input container for sending messages -->
+    <div id="inputContainer">
+        <input type="text" id="input" name="input" autocomplete="off" placeholder="Type a message...">
+        <input type="text" id="recipientIdInput" name="recipientIdInput" placeholder="Recipient ID">
+        <button id="sendToRecipientButton">Send Message to Recipient</button>
+        <button id="sendButton">Send Message</button>
+    </div>
+    <!-- Input container for sending files -->
+    <div id="fileInputContainer">
+        <input type="file" id="fileInput" name="fileInput" multiple>
+        <button id="sendFileButton">Send File</button>
+    </div>
+    <!-- Input container for room operations -->
+    <div id="roomContainer">
+        <input type="text" id="roomInput" name="roomInput" placeholder="Enter room name">
+        <div id="roomButtons">
+            <button id="createRoomButton">Create Room</button>
+            <button id="joinRoomButton">Join Room</button>
+            <button id="leaveRoomButton">Leave Room</button>
+        </div>
+    </div>
+    <!-- Input container for updating status -->
+    <div id="statusContainer">
+        <input type="text" id="statusInput" name="statusInput" placeholder="Enter status">
+        <button id="updateStatusButton">Update Status</button>
+    </div>
+    <!-- Container for server messages -->
+    <div id="serverMessage"></div>
+    <!-- Script for WebSocket communication -->
+    <script>
+        const ws = new WebSocket('ws://localhost:3000');
+        let clientName = '';
+
+        // WebSocket onopen event
+        ws.onopen = () => {
+            console.log('Connected to WebSocket server');
+            // Generate a random client name
+            clientName = Math.floor(Math.random() * 1000);
+        };
+
+        // WebSocket onmessage event
+        ws.onmessage = event => {
+            const data = JSON.parse(event.data);
+            if (data.message) {
+                const messages = document.getElementById('messages');
+                const li = document.createElement('li');
+                li.textContent = `${data.clientName}: ${data.message}`; // Display client name along with message
+                messages.appendChild(li);
+                messages.scrollTop = messages.scrollHeight;
+            } else if (data.file) {
+                const { name, type, data: fileData } = data.file;
+                const messages = document.getElementById('messages');
+                const fileLink = document.createElement('a');
+                fileLink.href = fileData;
+                fileLink.download = name;
+                fileLink.textContent = `Received file: ${name}`;
+                fileLink.setAttribute('target', '_blank'); // Open in a new tab
+                const li = document.createElement('li');
+                li.appendChild(fileLink);
+                messages.appendChild(li);
+                messages.scrollTop = messages.scrollHeight;
+            } else if (data.serverMessage) {
+                const serverMessageDiv = document.getElementById('serverMessage');
+                serverMessageDiv.textContent = data.serverMessage;
+            } else if (data.status) {
+                const statusMessageDiv = document.getElementById('statusMessage');
+                statusMessageDiv.textContent = `Status updated: ${data.status}`;
+            }
+        };
+
+        // WebSocket onclose event
+        ws.onclose = () => {
+            console.log('Disconnected from WebSocket server');
+        };
+
+        // Function to send a text message
+        function sendMessage() {
+            const input = document.getElementById('input');
+            const message = input.value.trim();
+            if (message !== '') {
+                const room = document.getElementById('roomInput').value;
+                const status = document.getElementById('statusInput').value;
+                ws.send(JSON.stringify({ message, room, clientName, status })); // Include client name and status in the message
+                input.value = '';
+            }
+        }
+
+        // Function to send a file
+        function sendFile() {
+            const fileInput = document.getElementById('fileInput');
+            const files = fileInput.files;
+
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const reader = new FileReader();
+
+                reader.onload = function(event) {
+                    const fileData = event.target.result;
+                    const fileInfo = {
+                        name: file.name,
+                        type: file.type,
+                        data: fileData
+                    };
+                    const recipientId = document.getElementById('recipientIdInput').value;
+                    const room = document.getElementById('roomInput').value;
+                    const status = document.getElementById('statusInput').value;
+                    ws.send(JSON.stringify({ file: fileInfo, recipientId, room, clientName, status })); // Include client name, recipient ID, and status in the message
+                };
+
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // Function to send a message to a specific recipient
+        function sendMessageToRecipient() {
+            const input = document.getElementById('input');
+            const recipientId = document.getElementById('recipientIdInput').value;
+            const message = input.value.trim();
+            if (message !== '') {
+                const room = document.getElementById('roomInput').value;
+                const status = document.getElementById('statusInput').value;
+                ws.send(JSON.stringify({ message, recipientId, room, clientName, status })); // Include recipient ID along with other message data
+                input.value = '';
+            }
+        }
+
+        // Function to create a room
+        function createRoom() {
+            const roomName = document.getElementById('roomInput').value;
+            const status = document.getElementById('statusInput').value;
+            ws.send(JSON.stringify({ createRoom: roomName, status }));
+        }
+
+        // Function to join a room
+        function joinRoom() {
+            const roomName = document.getElementById('roomInput').value;
+            const status = document.getElementById('statusInput').value;
+            ws.send(JSON.stringify({ joinRoom: roomName, status }));
+        }
+
+        // Function to leave a room
+        function leaveRoom() {
+            const roomName = document.getElementById('roomInput').value;
+            const status = document.getElementById('statusInput').value;
+            ws.send(JSON.stringify({ leaveRoom: roomName, status }));
+        }
+
+        // Function to update status
+        function updateStatus() {
+            const status = document.getElementById('statusInput').value;
+            ws.send(JSON.stringify({ status }));
+        }
+
+        // Event listeners for buttons
+        document.getElementById('sendButton').addEventListener('click', sendMessage);
+        document.getElementById('sendFileButton').addEventListener('click', sendFile);
+        document.getElementById('sendToRecipientButton').addEventListener('click', sendMessageToRecipient);
+        document.getElementById('createRoomButton').addEventListener('click', createRoom);
+        document.getElementById('joinRoomButton').addEventListener('click', joinRoom);
+        document.getElementById('leaveRoomButton').addEventListener('click', leaveRoom);
+        document.getElementById('updateStatusButton').addEventListener('click', updateStatus);
+        document.getElementById('input').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+    </script>
+</body>
+</html>

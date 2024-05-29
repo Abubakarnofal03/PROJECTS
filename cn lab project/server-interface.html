@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket Server Interface</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f2f2f2;
+        }
+
+        h1 {
+            background-color: #007bff;
+            color: white;
+            padding: 20px;
+            margin: 0;
+            text-align: center;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        input[type="text"] {
+            width: calc(100% - 80px);
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        #messages {
+            list-style-type: none;
+            padding: 0;
+            margin: 10px 0;
+        }
+
+        #messages li {
+            padding: 10px;
+            background-color: #f2f2f2;
+            border-radius: 5px;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>WebSocket Server Interface</h1>
+    <div class="container">
+        <div>
+            <input type="text" id="serverInput" placeholder="Type a message...">
+            <button onclick="sendServerMessage()">Send to Client</button>
+        </div>
+        <h2>Messages from Client</h2>
+        <ul id="messages"></ul>
+    </div>
+
+    <script>
+        const ws = new WebSocket('ws://localhost:3000');
+
+        ws.onopen = () => {
+            console.log('Connected to WebSocket server');
+        };
+
+        ws.onmessage = event => {
+            const messages = document.getElementById('messages');
+            const li = document.createElement('li');
+            li.textContent = event.data;
+            messages.appendChild(li);
+        };
+
+        ws.onclose = () => {
+            console.log('Disconnected from WebSocket server');
+        };
+
+        function sendServerMessage() {
+            const serverInput = document.getElementById('serverInput').value;
+            ws.send(JSON.stringify({ message: serverInput }));
+            document.getElementById('serverInput').value = '';
+        }
+    </script>
+</body>
+</html>
